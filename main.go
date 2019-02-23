@@ -3,104 +3,102 @@ package main
 
 import (
 	"fmt"
-	"image"
-	_ "image/color"
-	_ "image/jpeg"
-	"image/png"
-	"log"
-	"os"
+	_ "os"
+	"time"
 
-	"github.com/microo8/blackcl"
+	"github.com/faiface/pixel"
+	"github.com/faiface/pixel/imdraw"
+	"github.com/faiface/pixel/pixelgl"
+	"golang.org/x/image/colornames"
 )
 
-func readImage(d *blackcl.Device, path string) (*blackcl.Image, error) {
-	imgFile, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	img, _, err := image.Decode(imgFile)
-	if err != nil {
-		return nil, err
-	}
-	i, err := d.NewImageFromImage(img)
-	if err != nil {
-		return nil, err
-	}
-	return i, nil
-}
-
-func writeImage(img *blackcl.Image, path string) error {
-	receivedImg, err := img.Data()
-	if err != nil {
-		return err
-	}
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	return png.Encode(f, receivedImg)
-}
-
-const golKernel = `
-__constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_REPEAT | CLK_FILTER_NEAREST;
-__kernel void gol(__read_only image2d_t src, __write_only image2d_t dest) {
-	const int2 pos = {get_global_id(0), get_global_id(1)};
-	int counter = 0;
-	int self = 0;
-
-	if (read_imagei(src, sampler, pos).x != 0)
-		self = 1;
-
-	for (int y1 = -1; y1 <= 1; y1++) {
-		for (int x1 = -1; x1 <=1; x1++) {
-			if (x1 != 0 || y1 != 0) {
-				int2 tempPos = {pos.x+x1, pos.y+y1};
-				if (read_imagei(src, sampler, tempPos).x != 0)
-					counter ++;
-			}
-		}
-	}
-	
-	int new = (counter == 3 || (counter == 2 && self));
-	
-	float4 pixel = {new, new, new, 1};
-	write_imagef(dest, pos, pixel);
-}`
+const (
+	width, height = 800, 800
+)
 
 func main() {
-	devices, err := blackcl.GetDevices(blackcl.DeviceTypeDefault)
-	if err != nil {
-		log.Fatal(err)
-	}
-	d := devices[0]
-	defer d.Release()
-	imgA, err := readImage(d, "data/init.png")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer imgA.Release()
-	d.AddProgram(golKernel)
-	k := d.Kernel("gol")
-	imgB, err := d.NewImage(blackcl.ImageTypeRGBA, imgA.Bounds())
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer imgB.Release()
 
-	for i := 0; i < 100; i++ {
-		err = <-k.Global(imgA.Bounds().Dx(), imgA.Bounds().Dy()).Local(1, 1).Run(imgA, imgB)
+	err := initComputeDevice()
+	if err != nil {
+		panic(err)
+	}
+
+	world, err := NewWorld(width, height)
+	if err != nil {
+		panic(err)
+	}
+
+	/*f, err := os.Create("profile.out")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer pprof.StopCPUProfile()*/
+
+	//runTicker := time.NewTicker(time.Second / 60).C
+	rateTicker := time.NewTicker(time.Second).C
+	go func() {
+
+		counter := 0
+		profilingCounter := 0
+		for {
+			select {
+			//case <-runTicker:
+			default:
+
+				/*if profilingCounter == 60 {
+					pprof.StartCPUProfile(f)
+				}
+				if profilingCounter == 600 {
+					pprof.StopCPUProfile()
+				}*/
+				counter++
+				profilingCounter++
+				err := world.Update()
+				if err != nil {
+					panic(err)
+				}
+			case <-rateTicker:
+				fmt.Printf("Rate: %d\n", counter)
+				counter = 0
+			}
+
+		}
+	}()
+
+	pixelgl.Run(func() {
+		cfg := pixelgl.WindowConfig{
+			Title:  "GOL",
+			Bounds: pixel.R(0, 0, width, height),
+			VSync:  true,
+		}
+		win, err := pixelgl.NewWindow(cfg)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
-		imgA, imgB = imgB, imgA
-		fmt.Print("#")
+		imd := imdraw.New(nil)
+		for !win.Closed() {
+			select {
+			case img := <-world.imageUpdates:
+				pic := pixel.PictureDataFromImage(img)
+				sprite := pixel.NewSprite(pic, pic.Bounds())
 
-	}
+				win.Clear(colornames.Black)
+				imd.Clear()
 
-	err = writeImage(imgB, "data/output.png")
-	if err != nil {
-		log.Fatal(err)
-	}
+				sprite.Draw(win, pixel.IM.Moved(win.Bounds().Center()))
+
+				imd.Draw(win)
+				win.Update()
+			default: // Run with maximum frames, to handle input events
+				win.Update()
+			}
+
+			/*if win.Pressed(pixelgl.MouseButtonLeft) {
+				world.newParticleQueue <- win.MousePosition()
+			}*/
+
+		}
+	})
 }
