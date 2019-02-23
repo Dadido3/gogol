@@ -45,7 +45,6 @@ func main() {
 			select {
 			//case <-runTicker:
 			default:
-
 				/*if profilingCounter == 60 {
 					pprof.StartCPUProfile(f)
 				}
@@ -54,7 +53,7 @@ func main() {
 				}*/
 				counter++
 				profilingCounter++
-				err := world.Update()
+				err := world.Update(1)
 				if err != nil {
 					panic(err)
 				}
@@ -69,7 +68,7 @@ func main() {
 	pixelgl.Run(func() {
 		cfg := pixelgl.WindowConfig{
 			Title:  "GOL",
-			Bounds: pixel.R(0, 0, width, height),
+			Bounds: pixel.R(0, 0, width+2, height+2),
 			VSync:  true,
 		}
 		win, err := pixelgl.NewWindow(cfg)
@@ -95,9 +94,10 @@ func main() {
 				win.Update()
 			}
 
-			/*if win.Pressed(pixelgl.MouseButtonLeft) {
-				world.newParticleQueue <- win.MousePosition()
-			}*/
+			if win.Pressed(pixelgl.MouseButtonLeft) {
+				coords := Coord{int(win.MousePosition().X), height + 2 - int(win.MousePosition().Y)}
+				world.newPixelQueue <- coords
+			}
 
 		}
 	})
