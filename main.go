@@ -2,6 +2,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	_ "os"
 	"time"
@@ -18,7 +19,11 @@ const (
 
 func main() {
 
-	err := initComputeDevice()
+	deviceNumber := flag.Int("device", 0, "OpenCl device number")
+
+	flag.Parse()
+
+	err := initComputeDevice(*deviceNumber)
 	if err != nil {
 		panic(err)
 	}

@@ -30,13 +30,20 @@ __kernel void gol(__global char* src, __global char* dest) {
 	//dest[pos.x+width*pos.y] = src[pos.x+width*pos.y];
 }`
 
-func initComputeDevice() error {
+func initComputeDevice(deviceNumber int) error {
 	devices, err := blackcl.GetDevices(blackcl.DeviceTypeAll)
 	if err != nil {
 		return err
 	}
-	openGlDevice = devices[2]
-	fmt.Println(openGlDevice.Name())
+
+	for i, device := range devices {
+		if i == deviceNumber {
+			fmt.Printf("-> ID %d: %s\n", i, device.Name())
+		} else {
+			fmt.Printf("   ID %d: %s\n", i, device.Name())
+		}
+	}
+	openGlDevice = devices[deviceNumber]
 
 	openGlDevice.AddProgram(golKernel)
 	clKernel = openGlDevice.Kernel("gol")
