@@ -3,10 +3,9 @@ package main
 
 import (
 	"image"
-	_ "image/color"
 	"math/rand"
 
-	"github.com/microo8/blackcl"
+	"github.com/Dadido3/blackcl"
 )
 
 type Coord struct {
@@ -80,7 +79,11 @@ loop:
 		}
 	}
 
-	err := <-clKernel.Global(w.width, w.height).Local(20, 20).Run(w.data1, w.data2)
+	for i := 0; i < iterations-1; i++ {
+		clKernel.Global(w.width, w.height).Local().Run(w.data1, w.data2)
+		w.data1, w.data2 = w.data2, w.data1
+	}
+	err := <-clKernel.Global(w.width, w.height).Local().Run(w.data1, w.data2)
 	if err != nil {
 		return err
 	}

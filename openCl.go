@@ -4,17 +4,17 @@ package main
 import (
 	"fmt"
 
-	"github.com/microo8/blackcl"
+	"github.com/Dadido3/blackcl"
 )
 
 var openGlDevice *blackcl.Device
 var clKernel *blackcl.Kernel
 
 const golKernel = `
-__kernel void gol(__global uchar* src, __global uchar* dest) {
+__kernel void gol(__global char* src, __global char* dest) {
 	const int2 pos = {get_global_id(0)+1, get_global_id(1)+1};
 	const int width = get_global_size(0)+2;
-	uchar counter = 0;
+	char counter = 0;
 
 	for (int y1 = -1; y1 <= 1; y1++) {
 		for (int x1 = -1; x1 <= 1; x1++) {
@@ -24,7 +24,7 @@ __kernel void gol(__global uchar* src, __global uchar* dest) {
 		}
 	}
 	
-	uchar new = (counter == 3 || (counter == 2 && src[pos.x+width*pos.y]));
+	char new = (counter == 3 || (counter == 2 && src[pos.x+width*pos.y]));
 	
 	dest[pos.x+width*pos.y] = new * 255;
 	//dest[pos.x+width*pos.y] = src[pos.x+width*pos.y];

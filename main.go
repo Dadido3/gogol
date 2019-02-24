@@ -51,9 +51,9 @@ func main() {
 				if profilingCounter == 600 {
 					pprof.StopCPUProfile()
 				}*/
-				counter++
+				counter += 10
 				profilingCounter++
-				err := world.Update(1)
+				err := world.Update(10)
 				if err != nil {
 					panic(err)
 				}
