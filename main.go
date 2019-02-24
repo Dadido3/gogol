@@ -1,4 +1,4 @@
-// OpenCL test project main.go
+// OpenCL game of life project main.go
 package main
 
 import (
@@ -19,7 +19,7 @@ const (
 
 func main() {
 
-	deviceNumber := flag.Int("device", 0, "OpenCl device number")
+	deviceNumber := flag.Int("device", 0, "OpenCL device number")
 
 	flag.Parse()
 
@@ -72,7 +72,7 @@ func main() {
 
 	pixelgl.Run(func() {
 		cfg := pixelgl.WindowConfig{
-			Title:  "GOL",
+			Title:  "gogol",
 			Bounds: pixel.R(0, 0, width+2, height+2),
 			VSync:  true,
 		}
