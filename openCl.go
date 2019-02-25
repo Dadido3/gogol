@@ -38,9 +38,9 @@ func initComputeDevice(deviceNumber int) error {
 
 	for i, device := range devices {
 		if i == deviceNumber {
-			fmt.Printf("-> ID %d: %s\n", i, device.Name())
+			fmt.Printf("-> ID %d: %s (%s, %s, %s)\n", i, device.Name(), device.DriverVersion(), device.OpenCLCVersion(), device.Version())
 		} else {
-			fmt.Printf("   ID %d: %s\n", i, device.Name())
+			fmt.Printf("   ID %d: %s (%s, %s, %s)\n", i, device.Name(), device.DriverVersion(), device.OpenCLCVersion(), device.Version())
 		}
 	}
 	openGlDevice = devices[deviceNumber]
