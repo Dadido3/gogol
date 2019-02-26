@@ -1,4 +1,4 @@
-# Go OpenCL Game of Life "gogol"
+# gogol
 A simple OpenCL implementation of `Game of Life` in go.
 
 ![](https://github.com/Dadido3/gogol/raw/master/screenshots/gol.png)
