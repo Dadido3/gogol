@@ -1,0 +1,1 @@
+go tool pprof -http=: ./gogol.exe profile.out

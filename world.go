@@ -80,27 +80,31 @@ loop:
 	}
 
 	for i := 0; i < iterations-1; i++ {
-		clKernel.Global(w.width, w.height).Local().Run(w.data1, w.data2)
+		_, err := clKernel.GlobalOffset(1, 1).Global(w.width, w.height).Run(false, nil, w.data1, w.data2)
+		if err != nil {
+			return err
+		}
 		w.data1, w.data2 = w.data2, w.data1
 	}
-	err := <-clKernel.Global(w.width, w.height).Local().Run(w.data1, w.data2)
+	event, err := clKernel.GlobalOffset(1, 1).Global(w.width, w.height).Run(true, nil, w.data1, w.data2)
 	if err != nil {
 		return err
 	}
+	defer event.Release()
+	event.Wait()
 
 	w.data1, w.data2 = w.data2, w.data1
 
 	// If possible write the state to the graphics output channel
 	if len(w.imageUpdates) == 0 {
-		array, err := w.data1.Data()
-		if err != nil {
-			return err
-		}
+		go func() {
+			array, _ := w.data1.Data()
 
-		img := image.NewGray(image.Rect(0, 0, w.width+2, w.height+2))
-		img.Pix = array
+			img := image.NewGray(image.Rect(0, 0, w.width+2, w.height+2))
+			img.Pix = array
 
-		w.imageUpdates <- img
+			w.imageUpdates <- img
+		}()
 	}
 
 	return nil

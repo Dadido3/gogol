@@ -12,7 +12,7 @@ var clKernel *blackcl.Kernel
 
 const golKernel = `
 __kernel void gol(__global char* src, __global char* dest) {
-	const int2 pos = {get_global_id(0)+1, get_global_id(1)+1};
+	const int2 pos = {get_global_id(0), get_global_id(1)};
 	const int width = get_global_size(0)+2;
 	char counter = 0;
 
