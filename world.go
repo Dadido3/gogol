@@ -8,19 +8,19 @@ import (
 	"github.com/Dadido3/blackcl"
 )
 
-type Coord struct {
+type coord struct {
 	X, Y int
 }
 
-type World struct {
+type world struct {
 	width, height int
 	data1, data2  *blackcl.Bytes
 
 	imageUpdates  chan image.Image
-	newPixelQueue chan Coord
+	newPixelQueue chan coord
 }
 
-func NewWorld(width, height int) (world *World, err error) {
+func newWorld(width, height int) (w *world, err error) {
 	data1, err := openGlDevice.NewBytes((width + 2) * (height + 2))
 	if err != nil {
 		return nil, err
@@ -31,18 +31,18 @@ func NewWorld(width, height int) (world *World, err error) {
 		return nil, err
 	}
 
-	world = &World{
+	w = &world{
 		width:         width,
 		height:        height,
 		data1:         data1,
 		data2:         data2,
 		imageUpdates:  make(chan image.Image, 1),
-		newPixelQueue: make(chan Coord, 10),
+		newPixelQueue: make(chan coord, 10),
 	}
 
 	// Init data
 	array := make([]byte, (width+2)*(height+2))
-	for i, _ := range array {
+	for i := range array {
 		array[i] = byte(rand.Intn(2) * 255)
 	}
 	err = <-data1.Copy(array)
@@ -57,7 +57,7 @@ func NewWorld(width, height int) (world *World, err error) {
 	return
 }
 
-func (w *World) Update(iterations int) error {
+func (w *world) update(iterations int) error {
 
 loop:
 	for {

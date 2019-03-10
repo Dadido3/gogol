@@ -28,7 +28,7 @@ func main() {
 		panic(err)
 	}
 
-	world, err := NewWorld(width, height)
+	world, err := newWorld(width, height)
 	if err != nil {
 		panic(err)
 	}
@@ -58,7 +58,7 @@ func main() {
 				}*/
 				counter += 10
 				profilingCounter++
-				err := world.Update(10)
+				err := world.update(10)
 				if err != nil {
 					panic(err)
 				}
@@ -100,7 +100,7 @@ func main() {
 			}
 
 			if win.Pressed(pixelgl.MouseButtonLeft) {
-				coords := Coord{int(win.MousePosition().X), height + 2 - int(win.MousePosition().Y)}
+				coords := coord{int(win.MousePosition().X), height + 2 - int(win.MousePosition().Y)}
 				world.newPixelQueue <- coords
 			}
 
